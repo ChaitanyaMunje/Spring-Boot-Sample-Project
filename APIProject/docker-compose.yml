@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: apiproject-postgres
+    environment:
+      POSTGRES_DB: studentDB
+      POSTGRES_USER: apiprojectuser
+      POSTGRES_PASSWORD: apiprojectpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apiprojectuser -d studentDB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  apiproject:
+    build:
+      context: .
+      dockerfile: APIProject/Dockerfile
+    container_name: apiproject
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # these map into application.properties environment variables
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/studentDB
+      SPRING_DATASOURCE_USERNAME: apiprojectuser
+      SPRING_DATASOURCE_PASSWORD: apiprojectpass
+      SERVER_PORT: 9191
+    ports:
+      - "9191:9191"
+    restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata:
+
