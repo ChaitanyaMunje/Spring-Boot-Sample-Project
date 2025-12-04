@@ -1,4 +1,4 @@
-name: Build Spring Boot JAR
+name: Build Spring Boot JAR (APIProject)
 
 on:
   push:
@@ -10,25 +10,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # make all `run:` steps use APIProject/ by default
+    defaults:
+      run:
+        working-directory: APIProject
+
     steps:
-      # Step 1: Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Java 21
-      - name: Set up JDK 21
+      - name: Set up JDK 21 and cache Maven
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
+          # points the cache to your APIProject pom
+          cache-dependency-path: APIProject/pom.xml
 
-      # Step 3: Build the JAR
+      - name: Ensure Maven wrapper is executable
+        run: chmod +x mvnw
+
       - name: Build Spring Boot JAR
         run: |
-          ./mvnw clean package -DskipTests
+          ./mvnw -B clean package -DskipTests
 
-      # Step 4: Upload the JAR as an artifact
+      - name: List produced artifacts (for debug)
+        run: ls -al target || true
+
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
