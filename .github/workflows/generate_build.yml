@@ -10,7 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # make all `run:` steps use APIProject/ by default
     defaults:
       run:
         working-directory: APIProject
@@ -19,27 +18,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 and cache Maven
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-          # points the cache to your APIProject pom
           cache-dependency-path: APIProject/pom.xml
 
-      - name: Ensure Maven wrapper is executable
-        run: chmod +x mvnw
-
       - name: Build Spring Boot JAR
-        run: |
-          ./mvnw -B clean package -DskipTests
-
-      - name: List produced artifacts (for debug)
-        run: ls -al target || true
+        run: mvn -B clean package -DskipTests
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: spring-boot-jar
-          path: target/*.jar
+          name: apiproject-jar
+          path: APIProject/target/*.jar
